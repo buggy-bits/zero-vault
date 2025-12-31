@@ -1,8 +1,11 @@
+import { EncryptedPrivateKey } from "./crypto";
+
 export interface User {
-  id: string;
-  userName: string;
+  _id: string;
+  // userName: string;
   email: string;
-  createdAt: string;
+  publicKey: JsonWebKey | null;
+  // encryptedPrivateKey: EncryptedPrivateKey | null;
 }
 
 export interface AuthState {
@@ -10,6 +13,9 @@ export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  token: string | null;
+  publicKey: JsonWebKey | null;
+  privateKey: CryptoKey | null;
 }
 
 export interface LoginCredentials {
@@ -18,7 +24,9 @@ export interface LoginCredentials {
 }
 
 export interface RegisterCredentials {
-  userName: string;
+  // userName: string;
   email: string;
   password: string;
+  publicKey: JsonWebKey;
+  encryptedPrivateKey: EncryptedPrivateKey;
 }

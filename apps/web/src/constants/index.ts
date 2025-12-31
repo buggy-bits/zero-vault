@@ -5,6 +5,10 @@ export const API_ENDPOINTS = {
     REGISTER: "/api/v1/auth/register",
     REFRESH: "/api/v1/token/refresh",
   },
+  NOTE: {
+    CREATE: "/api/v1/notes",
+    GET_ALL: "/api/v1/notes",
+  },
   PROJECTS: "/api/v1/projects",
   ENDPOINTS: "/api/v1/endpoints",
   RESOURCES: "/api/v1/resources",

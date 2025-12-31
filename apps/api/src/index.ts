@@ -4,7 +4,7 @@ import { connectToDatabase, disconnectDB } from "./database/mongodb";
 
 const server = app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  // connectToDatabase();
+  connectToDatabase();
 });
 
 // Graceful shutdown

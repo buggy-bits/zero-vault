@@ -1,21 +1,32 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { AuthState, User } from '../types';
-import { authService } from '../services/authService';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  ReactNode,
+} from "react";
+import { AuthState, User } from "../types";
+import { authService } from "../services/authService";
+import { EncryptedPrivateKey } from "../types/crypto";
+import { decryptPrivateKey } from "../crypto/password";
 
 type AuthAction =
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_USER'; payload: User }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'LOGOUT' };
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_USER"; payload: User }
+  | { type: "SET_ERROR"; payload: string | null }
+  | { type: "LOGOUT" }
+  | { type: "SET_PRIVATE_KEY"; payload: CryptoKey | null }
+  | { type: "SET_TOKEN"; payload: string | null }
+  | { type: "SET_PUBLIC_KEY"; payload: JsonWebKey | null };
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   guestLogin: () => Promise<void>;
   register: (
-    userName: string,
     email: string,
     password: string,
-    confirmPassword: string,
+    publicKey: JsonWebKey,
+    encryptedPrivateKey: EncryptedPrivateKey
   ) => Promise<void>;
   logout: () => void;
 }
@@ -27,13 +38,16 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: true,
   error: null,
+  privateKey: null,
+  token: null,
+  publicKey: null,
 };
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return { ...state, loading: action.payload };
-    case 'SET_USER':
+    case "SET_USER":
       return {
         ...state,
         user: action.payload,
@@ -41,9 +55,9 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         loading: false,
         error: null,
       };
-    case 'SET_ERROR':
+    case "SET_ERROR":
       return { ...state, error: action.payload, loading: false };
-    case 'LOGOUT':
+    case "LOGOUT":
       return {
         ...state,
         user: null,
@@ -51,6 +65,13 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         loading: false,
         error: null,
       };
+    case "SET_PRIVATE_KEY":
+      return { ...state, privateKey: action.payload };
+    case "SET_TOKEN":
+      return { ...state, token: action.payload };
+    case "SET_PUBLIC_KEY":
+      return { ...state, publicKey: action.payload };
+
     default:
       return state;
   }
@@ -64,55 +85,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (authService.isAuthenticated()) {
         try {
           const user = await authService.getCurrentUser();
-          dispatch({ type: 'SET_USER', payload: user });
+          dispatch({ type: "SET_USER", payload: user });
         } catch (error) {
           authService.logout();
-          dispatch({ type: 'LOGOUT' });
+          dispatch({ type: "LOGOUT" });
         }
       } else {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: "SET_LOADING", payload: false });
       }
     };
 
     initializeAuth();
   }, []);
 
+  const handleDecryptionPrivateKey = async (
+    encryptedPrivateKey: EncryptedPrivateKey,
+    userPass: string
+  ) => {
+    const pk = await decryptPrivateKey(encryptedPrivateKey, userPass);
+    return pk;
+  };
+
   const login = async (email: string, password: string) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: "SET_LOADING", payload: true });
     try {
-      const user = await authService.login({ email, password });
-      dispatch({ type: 'SET_USER', payload: user });
+      const responseData = await authService.login({ email, password });
+      const decryptedKey = await handleDecryptionPrivateKey(
+        responseData.encryptedPrivateKey,
+        password
+      );
+      dispatch({ type: "SET_TOKEN", payload: responseData.accessToken });
+      dispatch({ type: "SET_PUBLIC_KEY", payload: responseData.publicKey });
+      dispatch({
+        type: "SET_PRIVATE_KEY",
+        payload: decryptedKey,
+      });
+      dispatch({ type: "SET_USER", payload: responseData.user });
     } catch (error) {
       dispatch({
-        type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Login failed',
+        type: "SET_ERROR",
+        payload: error.response?.data?.message || "Login failed",
       });
       throw error;
     }
   };
 
   const guestLogin = async () => {
-    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: "SET_LOADING", payload: true });
     try {
       const user = await authService.guestLogin();
-      dispatch({ type: 'SET_USER', payload: user });
+      dispatch({ type: "SET_USER", payload: user });
     } catch (error) {
       dispatch({
-        type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Login failed',
+        type: "SET_ERROR",
+        payload: error.response?.data?.message || "Login failed",
       });
       throw error;
     }
   };
-  const register = async (userName: string, email: string, password: string) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
+  const register = async (
+    // userName: string,
+    email: string,
+    password: string,
+    publicKey: JsonWebKey,
+    encryptedPrivateKey: EncryptedPrivateKey
+  ) => {
+    dispatch({ type: "SET_LOADING", payload: true });
     try {
-      await authService.register({ userName, email, password });
-      dispatch({ type: 'SET_LOADING', payload: false });
+      await authService.register({
+        // userName,
+        email,
+        password,
+        publicKey,
+        encryptedPrivateKey,
+      });
+      dispatch({ type: "SET_LOADING", payload: false });
     } catch (error) {
       dispatch({
-        type: 'SET_ERROR',
-        payload: error.response?.data?.message || 'Registration failed',
+        type: "SET_ERROR",
+        payload: error.response?.data?.message || "Registration failed",
       });
       throw error;
     }
@@ -120,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     authService.logout();
-    dispatch({ type: 'LOGOUT' });
+    dispatch({ type: "LOGOUT" });
   };
 
   const value: AuthContextType = {
@@ -137,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

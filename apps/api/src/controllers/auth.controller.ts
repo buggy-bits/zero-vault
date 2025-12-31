@@ -1,14 +1,14 @@
-import { NextFunction, Request, Response } from 'express';
-import { AppError } from '../middlewares/errorHandler.middleware';
-import UserModel, { UserType } from '../models/user.model';
-import bcrypt from 'bcrypt';
+import { NextFunction, Request, Response } from "express";
+import { AppError } from "../middlewares/errorHandler.middleware";
+import UserModel, { UserType } from "../models/user.model";
+import bcrypt from "bcrypt";
 import {
   generateAccessToken,
   generateRefreshToken,
   TokenPayload,
-} from '../utils/token';
-import jwt from 'jsonwebtoken';
-import { GUEST_USER_EMAIL, JWT_REFRESH_TOKEN_SECRET } from '../config/env';
+} from "../utils/token";
+import jwt from "jsonwebtoken";
+import { GUEST_USER_EMAIL, JWT_REFRESH_TOKEN_SECRET } from "../config/env";
 const saltRounds = 10;
 
 export const registerUser = async (
@@ -17,73 +17,79 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password, userName } = req.body;
+    const {
+      email,
+      password,
+      publicKey,
+      encryptedPrivateKey,
+      //  userName
+    } = req.body;
 
-    if (!email || !userName || !password) {
+    if (!email || !password) {
       const error: AppError = new Error(
-        'Email, Username and Password are required'
+        "Email, Username and Password are required"
       );
       error.status = 400;
       throw error;
     }
     // check for user existance
-    UserModel.findOne({ $or: [{ email }, { userName }] }).then(
-      (existingUser) => {
-        // if user already exists
-        if (existingUser) {
-          const error: AppError = new Error(
-            'User with given email or username already exists'
-          );
-          error.status = 409; // conflict
-          next(error);
-        }
-        // hash given password
-        bcrypt.genSalt(saltRounds, function (err, salt) {
-          bcrypt.hash(password, salt, function (err, hash) {
-            const newUser = new UserModel({
-              email,
-              userName,
-              password: hash,
-              projects: [],
-              createdAt: new Date(),
-            });
-            // save user to database
-            newUser
-              .save()
-              .then(() => {
-                const accessToken = generateAccessToken({
-                  userId: newUser._id.toString(),
-                });
-                const refreshToken = generateRefreshToken({
-                  userId: newUser._id.toString(),
-                });
-
-                res.cookie('refreshToken', refreshToken, {
-                  httpOnly: true,
-                  secure: true,
-                  sameSite: 'strict',
-                });
-                // return success response
-                res.status(201).json({
-                  status: 'success',
-                  message: 'User registered successfully.',
-                  data: { userId: newUser._id, email, userName },
-                  accessToken,
-                });
-              })
-              .catch((error) => {
-                // or error response
-                const err: AppError = new Error(
-                  'Database error: unable to save user'
-                );
-                err.status = 500;
-                next(error);
-                return;
-              });
-          });
-        });
+    UserModel.findOne({ $or: [{ email }] }).then((existingUser) => {
+      // if user already exists
+      if (existingUser) {
+        const error: AppError = new Error(
+          "User with given email or username already exists"
+        );
+        error.status = 409; // conflict
+        next(error);
       }
-    );
+      // hash given password
+      bcrypt.genSalt(saltRounds, function (err, salt) {
+        bcrypt.hash(password, salt, function (err, hash) {
+          const newUser = new UserModel({
+            email,
+            // userName,
+            passwordHash: hash,
+
+            publicKey,
+            encryptedPrivateKey,
+          });
+          // save user to database
+          newUser
+            .save()
+            .then(() => {
+              // const accessToken = generateAccessToken({
+              //   userId: newUser._id.toString(),
+              // });
+              // const refreshToken = generateRefreshToken({
+              //   userId: newUser._id.toString(),
+              // });
+
+              // res.cookie("refreshToken", refreshToken, {
+              //   httpOnly: true,
+              //   secure: true,
+              //   sameSite: "strict",
+              // });
+
+              // return success response
+              res.status(201).json({
+                status: "success",
+                message: "User registered successfully.",
+                // data: { userId: newUser._id, email },
+                // accessToken,
+              });
+            })
+            .catch((error) => {
+              // or error response
+              const err: AppError = new Error(
+                "Database error: unable to save user"
+              );
+              err.status = 500;
+              next(error);
+              return;
+            });
+        });
+      });
+    });
   } catch (error) {
     next(error);
   }
@@ -94,22 +100,25 @@ export const loginUser = (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      const error: AppError = new Error('Email and Password are required');
+      const error: AppError = new Error("Email and Password are required");
       error.status = 400;
       throw error;
     }
     // check for user existance
     UserModel.findOne({ email }).then((existingUser: UserType | null) => {
       if (!existingUser) {
-        const error: AppError = new Error('Invalid email or password');
+        const error: AppError = new Error("Invalid email or password");
         error.status = 401;
         return next(error);
       }
       // compare the password
-      bcrypt.compare(password, existingUser.password, function (err, result) {
+      bcrypt.compare(password, existingUser.passwordHash, function (
+        err,
+        result
+      ) {
         if (!result) {
           // incorrect password
-          const error: AppError = new Error('Invalid email or password');
+          const error: AppError = new Error("Invalid email or password");
           error.status = 403;
           return next(error);
         }
@@ -122,20 +131,22 @@ export const loginUser = (req: Request, res: Response, next: NextFunction) => {
           userId: existingUser._id.toString(),
         });
 
-        res.cookie('refreshToken', refreshToken, {
+        res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: "strict",
         });
 
         res.status(200).json({
-          status: 'success',
-          message: 'User login successfull',
+          status: "success",
+          message: "User login successfull",
           data: {
             userId: existingUser._id,
             email,
-            userName: existingUser.userName,
+            // userName: existingUser.userName,
           },
+          publicKey: existingUser.publicKey,
+          encryptedPrivateKey: existingUser.encryptedPrivateKey,
           accessToken,
         });
       });
@@ -156,30 +167,30 @@ export const generateNewAccessToken = async (
 
     const token = refreshTokenObj && refreshTokenObj.token;
     if (!token) {
-      const error: AppError = new Error('Refresh token missing');
+      const error: AppError = new Error("Refresh token missing");
       error.status = 401;
       return next(error);
     }
 
     const payload = jwt.verify(
       token,
-      JWT_REFRESH_TOKEN_SECRET || 'i-am-key'
+      JWT_REFRESH_TOKEN_SECRET || "i-am-key"
     ) as TokenPayload;
 
     const newToken = generateAccessToken({ userId: payload.userId });
 
     res.status(200).json({
-      status: 'success',
-      message: 'New access token generated',
+      status: "success",
+      message: "New access token generated",
       accessToken: newToken,
     });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      const jwtError: AppError = new Error('Invalid refresh token');
+      const jwtError: AppError = new Error("Invalid refresh token");
       jwtError.status = 401;
       return next(jwtError);
     } else if (error instanceof jwt.TokenExpiredError) {
-      const expiredError: AppError = new Error('Refresh token expired');
+      const expiredError: AppError = new Error("Refresh token expired");
       expiredError.status = 401;
       return next(expiredError);
     }
@@ -196,7 +207,7 @@ export const loginGuestUser = (
     const email = GUEST_USER_EMAIL;
     UserModel.findOne({ email }).then((existingUser) => {
       if (!existingUser) {
-        const error: AppError = new Error('Invalid email or password');
+        const error: AppError = new Error("Invalid email or password");
         error.status = 401;
         return next(error);
       }
@@ -206,20 +217,20 @@ export const loginGuestUser = (
       const refreshToken = generateRefreshToken({
         userId: existingUser._id.toString(),
       });
-      res.cookie('refreshToken', refreshToken, {
+      res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
+        sameSite: "strict",
         // path: '/auth/token/refresh',
       });
 
       res.status(200).json({
-        status: 'success',
-        message: 'User logged in successfully',
+        status: "success",
+        message: "User logged in successfully",
         data: {
           userId: existingUser._id,
           email,
-          userName: existingUser.userName,
+          // userName: existingUser.userName,
         },
         accessToken,
       });

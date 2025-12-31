@@ -1,44 +1,53 @@
-import mongoose, { Document } from "mongoose";
+import { Schema, model, Document } from "mongoose";
+
+interface EncryptedPrivateKey {
+  ciphertext: string;
+  iv: string;
+  salt: string;
+}
 
 export interface UserType extends Document {
-  _id: mongoose.Types.ObjectId;
   email: string;
-  userName: string;
-  password: string;
-  projects: mongoose.Types.ObjectId[];
-  createdAt: Date;
+  passwordHash: string;
+  publicKey: JsonWebKey;
+  encryptedPrivateKey: EncryptedPrivateKey;
 }
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  userName: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
 
-  projects: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Project",
+const EncryptedPrivateKeySchema = new Schema<EncryptedPrivateKey>(
+  {
+    ciphertext: { type: String, required: true },
+    iv: { type: String, required: true },
+    salt: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const UserSchema = new Schema<UserType>(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
-  ],
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    passwordHash: {
+      type: String,
+      required: true,
+    },
+    publicKey: {
+      type: Schema.Types.Mixed, // JsonWebKey is an object with varying structure
+      required: true,
+    },
+    encryptedPrivateKey: {
+      type: EncryptedPrivateKeySchema,
+      required: true,
+    },
   },
-});
+  {
+    timestamps: true,
+  }
+);
 
-export const UserModel = mongoose.model<UserType>("Users", userSchema);
+const UserModel = model<UserType>("User", UserSchema);
 export default UserModel;

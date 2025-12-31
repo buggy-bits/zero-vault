@@ -1,5 +1,6 @@
 // src/crypto/password.ts
 
+import { EncryptedPrivateKey } from "../types/crypto";
 import {
   stringToBuffer,
   bufferToString,
@@ -46,7 +47,7 @@ export async function encryptPrivateKey(
   const encrypted = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     aesKey,
-    data
+    data as BufferSource
   );
 
   return {
@@ -57,7 +58,7 @@ export async function encryptPrivateKey(
 }
 
 export async function decryptPrivateKey(
-  encryptedPayload: any,
+  encryptedPayload: EncryptedPrivateKey,
   password: string
 ): Promise<CryptoKey> {
   const salt = new Uint8Array(base64ToBuffer(encryptedPayload.salt));
