@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", "../web/src/debug"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }

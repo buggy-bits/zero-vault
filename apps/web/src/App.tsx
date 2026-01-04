@@ -12,6 +12,9 @@ import { RegisterPage } from "./pages/RegisterPage";
 import TestingPage from "./pages/TestingPage";
 import CreateNote from "./pages/CreateNote";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
+import ShareNotePage from "./pages/ShareNotePage";
+import Navbar from "./components/NavBar";
+import ReceiverInbox from "./pages/InboxPage";
 
 function App() {
   return (
@@ -19,6 +22,7 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <Router>
+          <Navbar />
           <Routes>
             <Route path="/" element={<TestingPage />} />
             <Route path="/auth/login" element={<LoginPage />} />
@@ -28,6 +32,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateNote />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/share"
+              element={
+                <ProtectedRoute>
+                  <ShareNotePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inbox"
+              element={
+                <ProtectedRoute>
+                  <ReceiverInbox />
                 </ProtectedRoute>
               }
             />

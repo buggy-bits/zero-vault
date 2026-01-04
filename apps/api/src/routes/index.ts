@@ -4,12 +4,13 @@ import authRoutes from "./auth.route";
 import usersRoute from "./user.route";
 import notesRoute from "./note.route";
 import { verifyToken } from "../middlewares/token.middleware";
-
+import shareRoute from "./share.route";
 const router = Router();
 //          /api/v1
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 router.use("/notes", notesRoute);
 router.use("/user", usersRoute);
+router.use("/share", shareRoute);
 
 export default router;
