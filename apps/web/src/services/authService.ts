@@ -5,16 +5,11 @@ import { LoginCredentials, RegisterCredentials, User } from "../types";
 export const authService = {
   async login(credentials: LoginCredentials) {
     const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
-    const {
-      data: user,
-      accessToken,
-      publicKey,
-      encryptedPrivateKey,
-    } = response.data;
+    const { data: user, publicKey, encryptedPrivateKey } = response.data;
     console.log("data from server:", response.data);
     // localStorage.setItem("accessToken", accessToken);
 
-    return { user, publicKey, encryptedPrivateKey, accessToken };
+    return { user, publicKey, encryptedPrivateKey };
   },
 
   async guestLogin() {

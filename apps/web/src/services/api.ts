@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import { API_ENDPOINTS } from '../constants';
-import { ENV } from '../config/env';
+import axios, { AxiosInstance, AxiosError } from "axios";
+import { API_ENDPOINTS } from "../constants";
+import { ENV } from "../config/env";
 
 class ApiService {
   private client: AxiosInstance;
@@ -10,8 +10,9 @@ class ApiService {
       baseURL: ENV.API_BASE_URL,
       timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
+      withCredentials: true,
     });
 
     this.setupInterceptors();
@@ -21,13 +22,13 @@ class ApiService {
     // Request interceptor for auth
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('accessToken');
-        if (token && !config.url?.includes('/auth/')) {
+        const token = localStorage.getItem("accessToken");
+        if (token && !config.url?.includes("/auth/")) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
-      (error) => Promise.reject(error),
+      (error) => Promise.reject(error)
     );
 
     // Response interceptor for token refresh
@@ -36,9 +37,11 @@ class ApiService {
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
           try {
-            const refreshResponse = await this.client.get(API_ENDPOINTS.AUTH.REFRESH);
+            const refreshResponse = await this.client.get(
+              API_ENDPOINTS.AUTH.REFRESH
+            );
             const newToken = refreshResponse.data.accessToken;
-            localStorage.setItem('accessToken', newToken);
+            localStorage.setItem("accessToken", newToken);
 
             // Retry original request
             if (error.config) {
@@ -46,12 +49,12 @@ class ApiService {
               return this.client.request(error.config);
             }
           } catch (refreshError) {
-            localStorage.removeItem('accessToken');
-            window.location.href = '/auth/login';
+            localStorage.removeItem("accessToken");
+            window.location.href = "/auth/login";
           }
         }
         return Promise.reject(error);
-      },
+      }
     );
   }
 

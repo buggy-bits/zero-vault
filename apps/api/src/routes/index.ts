@@ -3,7 +3,7 @@ import healthRoutes from "./health.route";
 import authRoutes from "./auth.route";
 import usersRoute from "./user.route";
 import notesRoute from "./note.route";
-import { verifyToken } from "../middlewares/token.middleware";
+
 import shareRoute from "./share.route";
 const router = Router();
 //          /api/v1

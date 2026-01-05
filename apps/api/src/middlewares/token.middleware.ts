@@ -16,18 +16,25 @@ export const verifyToken = async (
   next: NextFunction
 ) => {
   try {
-    const authHeader = req.headers["authorization"];
-    if (!authHeader || typeof authHeader !== "string") {
-      const error: AppError = new Error("Authorization header missing");
-      error.status = 401;
-      throw error;
+    let token: string | undefined;
+
+    // Read Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
     }
-    const token = authHeader.split(" ")[1]; // Bearer <token>
+
+    // Fallback to cookie
+    if (!token && req.cookies?.accessToken) {
+      token = req.cookies.accessToken;
+    }
+
     if (!token) {
-      const error: AppError = new Error("Token missing");
+      const error: AppError = new Error("Authentication token missing");
       error.status = 401;
       throw error;
     }
+
     jwt.verify(token, JWT_ACCESS_TOKEN_SECRET || "i-am-key", (err, decoded) => {
       if (err) {
         const error: AppError = new Error("Invalid or expired token");
@@ -35,11 +42,10 @@ export const verifyToken = async (
         return next(error);
       }
 
-      // Attach user info to request object
       req.user = { userId: (decoded as TokenPayload).userId };
       next();
     });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };

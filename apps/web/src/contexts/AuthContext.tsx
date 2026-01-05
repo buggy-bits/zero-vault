@@ -16,12 +16,13 @@ type AuthAction =
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "LOGOUT" }
   | { type: "SET_PRIVATE_KEY"; payload: CryptoKey | null }
-  | { type: "SET_TOKEN"; payload: string | null }
   | { type: "SET_PUBLIC_KEY"; payload: JsonWebKey | null };
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   guestLogin: () => Promise<void>;
+  setPrivateKey: (key: CryptoKey | null) => void;
+  setUser: (user: User) => void;
   register: (
     email: string,
     password: string,
@@ -39,7 +40,6 @@ const initialState: AuthState = {
   loading: true,
   error: null,
   privateKey: null,
-  token: null,
   publicKey: null,
 };
 
@@ -67,8 +67,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       };
     case "SET_PRIVATE_KEY":
       return { ...state, privateKey: action.payload };
-    case "SET_TOKEN":
-      return { ...state, token: action.payload };
+
     case "SET_PUBLIC_KEY":
       return { ...state, publicKey: action.payload };
 
@@ -105,6 +104,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pk = await decryptPrivateKey(encryptedPrivateKey, userPass);
     return pk;
   };
+  const setPrivateKey = (key: CryptoKey | null) => {
+    dispatch({ type: "SET_PRIVATE_KEY", payload: key });
+  };
+  const setUser = (user: User) => {
+    dispatch({ type: "SET_USER", payload: user });
+  };
 
   const login = async (email: string, password: string) => {
     dispatch({ type: "SET_LOADING", payload: true });
@@ -114,7 +119,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         responseData.encryptedPrivateKey,
         password
       );
-      dispatch({ type: "SET_TOKEN", payload: responseData.accessToken });
       dispatch({ type: "SET_PUBLIC_KEY", payload: responseData.publicKey });
       dispatch({
         type: "SET_PRIVATE_KEY",
@@ -177,6 +181,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     ...state,
     login,
+    setPrivateKey,
+    setUser,
     guestLogin,
     register,
     logout,

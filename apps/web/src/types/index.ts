@@ -5,7 +5,7 @@ export interface User {
   // userName: string;
   email: string;
   publicKey: JsonWebKey | null;
-  // encryptedPrivateKey: EncryptedPrivateKey | null;
+  encryptedPrivateKey: EncryptedPrivateKey | null;
 }
 
 export interface AuthState {
@@ -13,7 +13,6 @@ export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
-  token: string | null;
   publicKey: JsonWebKey | null;
   privateKey: CryptoKey | null;
 }

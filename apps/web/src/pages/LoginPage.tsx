@@ -17,8 +17,6 @@ import * as yup from "yup";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { LoadingButton } from "../components/common/LoadingButton";
-import { EncryptedPrivateKey } from "../types/crypto";
-import { decryptPrivateKey } from "../crypto/password";
 
 const schema = yup.object({
   email: yup.string().email("Invalid email").required("Email is required"),

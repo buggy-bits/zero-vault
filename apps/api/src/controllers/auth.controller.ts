@@ -8,8 +8,13 @@ import {
   TokenPayload,
 } from "../utils/token";
 import jwt from "jsonwebtoken";
-import { GUEST_USER_EMAIL, JWT_REFRESH_TOKEN_SECRET } from "../config/env";
+import {
+  GUEST_USER_EMAIL,
+  JWT_REFRESH_TOKEN_SECRET,
+  NODE_ENV,
+} from "../config/env";
 const saltRounds = 10;
+const isProduction = NODE_ENV === "production";
 
 export const registerUser = async (
   req: Request,
@@ -133,8 +138,14 @@ export const loginUser = (req: Request, res: Response, next: NextFunction) => {
 
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: "strict",
+          secure: isProduction,
+          sameSite: isProduction ? "none" : "lax",
+        });
+
+        res.cookie("accessToken", accessToken, {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: isProduction ? "none" : "lax",
         });
 
         res.status(200).json({
@@ -147,7 +158,6 @@ export const loginUser = (req: Request, res: Response, next: NextFunction) => {
           },
           publicKey: existingUser.publicKey,
           encryptedPrivateKey: existingUser.encryptedPrivateKey,
-          accessToken,
         });
       });
     });
@@ -219,8 +229,8 @@ export const loginGuestUser = (
       });
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         // path: '/auth/token/refresh',
       });
 
