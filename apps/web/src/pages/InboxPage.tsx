@@ -28,7 +28,7 @@ export default function ReceiverInbox() {
     try {
       const res = await fetch("http://localhost:3000/api/v1/notes", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          // Authorization: `Bearer ${token}`,
         },
       });
 

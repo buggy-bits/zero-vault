@@ -1,6 +1,6 @@
-import { config } from 'dotenv';
+import { config } from "dotenv";
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
+config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 export const {
   PORT,
@@ -9,4 +9,8 @@ export const {
   JWT_REFRESH_TOKEN_SECRET,
   JWT_ACCESS_TOKEN_SECRET,
   GUEST_USER_EMAIL,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI,
+  JWT_SECRET,
 } = process.env;

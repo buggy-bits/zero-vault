@@ -6,7 +6,7 @@ import axios from "axios";
 export async function createNote(
   plaintext: string,
   userPublicKey: JsonWebKey,
-  token: string
+  token?: string
 ) {
   // 1. Encrypt note content
   const encrypted = await encryptText(plaintext);

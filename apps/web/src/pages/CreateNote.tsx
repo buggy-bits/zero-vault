@@ -2,16 +2,17 @@ import { useState } from "react";
 import { createNote } from "../services/createNote";
 import { useAuth } from "../contexts/AuthContext";
 import { JsonWebKey } from "crypto";
+import ConnectDriveButton from "../components/ConnectDriveButton";
 
 export default function CreateNote() {
   const [text, setText] = useState("");
 
-  const { user, token, publicKey } = useAuth();
+  const { user, publicKey } = useAuth();
 
   async function handleCreate() {
-    if (!user || !token) return;
+    if (!user) return;
 
-    await createNote(text, publicKey as JsonWebKey, token);
+    await createNote(text, publicKey as JsonWebKey);
     alert("Note created (encrypted)");
     setText("");
   }
@@ -24,6 +25,8 @@ export default function CreateNote() {
         onChange={(e) => setText(e.target.value)}
       />
       <button onClick={handleCreate}>Create Note</button>
+
+      <ConnectDriveButton />
     </div>
   );
 }
