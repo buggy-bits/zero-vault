@@ -51,3 +51,54 @@ export async function decryptText(
 
   return bufferToString(decrypted);
 }
+
+// 🔁 reuse WebCrypto, AES-GCM
+
+export async function encryptBytes(data: ArrayBuffer) {
+  // 1. Generate AES key (DEK)
+  const key = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+
+  // 2. Encrypt bytes
+  const encryptedBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    data
+  );
+
+  // 3. Export raw DEK (for wrapping)
+  const rawKey = await crypto.subtle.exportKey("raw", key);
+
+  return {
+    encryptedData: new Uint8Array(encryptedBuffer), // bytes
+    iv: Array.from(iv), // for JSON
+    rawKey, // ArrayBuffer
+  };
+}
+
+export async function decryptBytes(
+  encryptedData: ArrayBuffer,
+  iv: number[],
+  rawKey: ArrayBuffer
+) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    rawKey,
+    { name: "AES-GCM" },
+    false,
+    ["decrypt"]
+  );
+
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: new Uint8Array(iv) },
+    key,
+    encryptedData
+  );
+
+  return decrypted; // ArrayBuffer
+}

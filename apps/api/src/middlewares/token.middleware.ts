@@ -3,11 +3,13 @@ import { AppError } from "./errorHandler.middleware";
 import { JWT_ACCESS_TOKEN_SECRET } from "../config/env";
 import jwt from "jsonwebtoken";
 import { TokenPayload } from "../utils/token";
+import type { File } from "multer";
 
 export interface IAuthenticatedRequest extends Request {
   user?: {
     userId: string;
   };
+  file?: File;
 }
 
 export const verifyToken = async (

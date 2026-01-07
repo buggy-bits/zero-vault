@@ -4,7 +4,12 @@ import {
   JWT_REFRESH_TOKEN_SECRET,
   JWT_SECRET,
 } from "../config/env";
-import { createHash, randomBytes, createCipheriv } from "crypto";
+import {
+  createHash,
+  randomBytes,
+  createCipheriv,
+  createDecipheriv,
+} from "crypto";
 
 export interface TokenPayload {
   userId: string;
@@ -39,4 +44,21 @@ export function encryptToken(token: string): string {
     data: encrypted,
     tag,
   });
+}
+
+export function decryptToken(encrypted: string): string {
+  const payload = JSON.parse(encrypted);
+
+  const decipher = createDecipheriv(
+    "aes-256-gcm",
+    KEY,
+    Buffer.from(payload.iv, "base64")
+  );
+
+  decipher.setAuthTag(Buffer.from(payload.tag, "base64"));
+
+  let decrypted = decipher.update(payload.data, "base64", "utf8");
+  decrypted += decipher.final("utf8");
+
+  return decrypted;
 }

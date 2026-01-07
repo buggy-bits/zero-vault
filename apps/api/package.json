@@ -21,7 +21,8 @@
     "express": "^5.1.0",
     "googleapis": "^169.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.19.1"
+    "mongoose": "^8.19.1",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

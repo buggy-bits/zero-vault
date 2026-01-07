@@ -4,6 +4,7 @@ import authRoutes from "./auth.route";
 import oAuthRoutes from "./oauth.route";
 import usersRoute from "./user.route";
 import notesRoute from "./note.route";
+import fileRoute from "./file.route";
 
 import shareRoute from "./share.route";
 const router = Router();
@@ -14,5 +15,6 @@ router.use("/oauth", oAuthRoutes);
 router.use("/notes", notesRoute);
 router.use("/user", usersRoute);
 router.use("/share", shareRoute);
+router.use("/files", fileRoute);
 
 export default router;

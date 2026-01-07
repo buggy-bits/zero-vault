@@ -3,6 +3,7 @@ import { createNote } from "../services/createNote";
 import { useAuth } from "../contexts/AuthContext";
 import { JsonWebKey } from "crypto";
 import ConnectDriveButton from "../components/ConnectDriveButton";
+import UploadFile from "./UploadFile";
 
 export default function CreateNote() {
   const [text, setText] = useState("");
@@ -27,6 +28,11 @@ export default function CreateNote() {
       <button onClick={handleCreate}>Create Note</button>
 
       <ConnectDriveButton />
+
+      <br />
+      <br />
+      <br />
+      <UploadFile />
     </div>
   );
 }

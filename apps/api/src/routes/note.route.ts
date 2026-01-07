@@ -76,4 +76,66 @@ router.get("/", verifyToken, async (req: IAuthenticatedRequest, res) => {
   res.json(response);
 });
 
+/**
+ * GET /api/notes/files
+ * Returns encrypted file notes accessible by the user
+ */
+router.get("/files", verifyToken, async (req: IAuthenticatedRequest, res) => {
+  try {
+    const userId = req.user!.userId;
+
+    // 1️⃣ Find all note_keys for this user
+    const noteKeys = await NoteKey.find({
+      userId,
+      isRevoked: { $ne: true },
+    }).lean();
+
+    if (!noteKeys.length) {
+      return res.json([]);
+    }
+
+    const noteIds = noteKeys.map((nk) => nk.noteId);
+
+    // 2️⃣ Fetch corresponding notes (FILES ONLY)
+    const notes = await Note.find({
+      _id: { $in: noteIds },
+      type: "file",
+      isDeleted: { $ne: true },
+    }).lean();
+
+    // 3️⃣ Merge note + key data
+    const response = notes.map((note) => {
+      const key = noteKeys.find(
+        (nk) => nk.noteId.toString() === note._id.toString()
+      );
+
+      return {
+        _id: note._id,
+
+        // File metadata
+        originalFileName: note.originalFileName,
+        mimeType: note.mimeType,
+        fileSize: note.fileSize,
+        iv: note.iv,
+
+        // Encrypted DEK info (needed for decryption)
+        encryptedDEK: key!.encryptedDEK,
+        dekIv: key!.dekIv,
+        ephemeralPublicKey: key!.ephemeralPublicKey,
+
+        // Storage info
+        storage: note.storage,
+        driveFileId: note.driveFileId,
+
+        createdAt: note.createdAt,
+      };
+    });
+
+    res.json(response);
+  } catch (err) {
+    console.error("GET /api/notes/files error:", err);
+    res.status(500).json({ message: "Failed to fetch files" });
+  }
+});
+
 export default router;

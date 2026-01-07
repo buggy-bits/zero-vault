@@ -21,6 +21,12 @@ const Navbar = () => (
     <Link to="/inbox" className="m-2">
       MyInbox
     </Link>
+    <Link to="/upload" className="m-2">
+      Upload
+    </Link>
+    <Link to="/myfiles" className="m-2">
+      My Files
+    </Link>
   </nav>
 );
 
