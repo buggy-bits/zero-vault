@@ -13,4 +13,7 @@ export const {
   GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI,
   JWT_SECRET,
+  FRONTEND_URL,
 } = process.env;
+
+console.dir(process.env);

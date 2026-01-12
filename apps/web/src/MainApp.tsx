@@ -19,6 +19,8 @@ import UnlockVaultModal from "./components/UnlockVaultModal";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
 import { useAuth } from "./contexts/AuthContext";
 import EncryptedFilesList from "./pages/EncryptedFileList";
+import MyFiles from "./pages/Myfiles";
+import ShareDownload from "./pages/ShareDownload";
 
 function MainApp() {
   const { user, setUser, privateKey } = useAuth();
@@ -107,6 +109,22 @@ function MainApp() {
           element={
             <ProtectedRoute>
               <EncryptedFilesList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/myfilesss"
+          element={
+            <ProtectedRoute>
+              <MyFiles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/share/:shareId"
+          element={
+            <ProtectedRoute>
+              <ShareDownload />
             </ProtectedRoute>
           }
         />

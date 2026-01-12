@@ -33,6 +33,7 @@ export default function EncryptedFilesList() {
 
           <button
             onClick={() => downloadAndDecryptFile(file, privateKey!, token)}
+            className="m-3 border-solid rounded-md border-2 p-2"
           >
             Download & Decrypt
           </button>

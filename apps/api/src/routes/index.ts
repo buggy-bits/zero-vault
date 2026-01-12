@@ -5,10 +5,10 @@ import oAuthRoutes from "./oauth.route";
 import usersRoute from "./user.route";
 import notesRoute from "./note.route";
 import fileRoute from "./file.route";
-
 import shareRoute from "./share.route";
+
 const router = Router();
-//          /api/v1
+//   /api/v1
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 router.use("/oauth", oAuthRoutes);

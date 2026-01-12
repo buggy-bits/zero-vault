@@ -7,6 +7,8 @@ import {
 } from "../middlewares/token.middleware";
 import { GoogleDriveConnection } from "../models/connectToDrive.model";
 import { encryptToken } from "../utils/token";
+import { getDriveClient } from "../utils/getDriveClient";
+import { getOrCreateZeroVaultFolder } from "../utils/getOrCreateFolder";
 
 const router = Router();
 
@@ -39,11 +41,18 @@ router.get("/google/callback", async (req, res) => {
   // 2. Encrypt refresh token (VERY IMPORTANT)
   const encryptedRefreshToken = encryptToken(tokens.refresh_token);
 
-  // 3. Store in DB
+  // after saving encrypted refresh token
+  const drive = await getDriveClient(encryptedRefreshToken);
+
+  // create or find ZeroVault folder
+  const rootFolderId = await getOrCreateZeroVaultFolder(drive);
+
+  // store folderId in DB
   await GoogleDriveConnection.findOneAndUpdate(
     { userId: state },
     {
       refreshTokenEncrypted: encryptedRefreshToken,
+      rootFolderId,
       scope: "drive.file",
       connectedAt: new Date(),
     },

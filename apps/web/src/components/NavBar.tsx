@@ -27,6 +27,9 @@ const Navbar = () => (
     <Link to="/myfiles" className="m-2">
       My Files
     </Link>
+    <Link to="/myfilesss" className="m-2">
+      My Files2
+    </Link>
   </nav>
 );
 

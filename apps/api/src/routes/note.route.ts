@@ -5,6 +5,7 @@ import {
   IAuthenticatedRequest,
   verifyToken,
 } from "../middlewares/token.middleware";
+import { FileShare } from "../models/fileShare.model";
 
 const router = Router();
 
@@ -137,5 +138,70 @@ router.get("/files", verifyToken, async (req: IAuthenticatedRequest, res) => {
     res.status(500).json({ message: "Failed to fetch files" });
   }
 });
+
+router.get(
+  "/metadata/share/:shareId",
+  verifyToken,
+  async (req: IAuthenticatedRequest, res) => {
+    const share = await FileShare.findOne({ shareId: req.params.shareId });
+
+    if (!share) {
+      return res.status(403).json({ error: "no share" });
+    }
+    if (share.receiverEmail !== req.user!.email) {
+      return res.status(403).json({ error: "no match email" });
+    }
+
+    const note = await Note.findById(share.noteId);
+    const key = await NoteKey.findOne({
+      noteId: note!._id,
+      userId: req.user!.userId,
+      isRevoked: false,
+    });
+
+    res.json({
+      encryptedDEK: key!.encryptedDEK,
+      dekIv: key!.dekIv,
+      ephemeralPublicKey: key!.ephemeralPublicKey,
+      iv: note!.iv,
+      mimeType: note!.mimeType,
+      originalFileName: note!.originalFileName,
+    });
+  }
+);
+
+/**
+ * Sender metadata (by fileId / noteId)
+ * Used when sharing
+ */
+router.get(
+  "/metadata/file/:fileId",
+  verifyToken,
+  async (req: IAuthenticatedRequest, res) => {
+    const { fileId } = req.params;
+
+    const note = await Note.findById(fileId);
+    if (!note) return res.sendStatus(404);
+
+    // only owner can request this
+    if (note.ownerId.toString() !== req.user!.userId) {
+      return res.sendStatus(403);
+    }
+
+    const key = await NoteKey.findOne({
+      noteId: fileId,
+      userId: req.user!.userId,
+      isRevoked: false,
+    });
+
+    if (!key) return res.sendStatus(404);
+
+    res.json({
+      encryptedDEK: key.encryptedDEK,
+      dekIv: key.dekIv,
+      ephemeralPublicKey: key.ephemeralPublicKey,
+    });
+  }
+);
 
 export default router;

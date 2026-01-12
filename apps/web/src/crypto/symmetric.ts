@@ -86,19 +86,41 @@ export async function decryptBytes(
   iv: number[],
   rawKey: ArrayBuffer
 ) {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    rawKey,
-    { name: "AES-GCM" },
-    false,
-    ["decrypt"]
-  );
+  // Validate the key length before importing it
+  if (rawKey.byteLength !== 16 && rawKey.byteLength !== 32) {
+    throw new Error("AES key data must be 128 or 256 bits (16 or 32 bytes).");
+  }
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: new Uint8Array(iv) },
-    key,
-    encryptedData
-  );
+  // Validate IV length for AES-GCM (typically 12 bytes)
+  if (iv.length !== 12) {
+    throw new Error(
+      "Initialization Vector (IV) for AES-GCM must be 12 bytes long."
+    );
+  }
 
-  return decrypted; // ArrayBuffer
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      rawKey,
+      { name: "AES-GCM" },
+      false,
+      ["decrypt"]
+    );
+
+    const decrypted = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: new Uint8Array(iv) },
+      key,
+      encryptedData
+    );
+
+    return decrypted; // ArrayBuffer
+  } catch (error) {
+    console.error("Decryption failed:", error);
+    // Re-throw a more descriptive error or handle it as appropriate for your application
+    throw new Error(
+      `Failed to decrypt data: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
 }

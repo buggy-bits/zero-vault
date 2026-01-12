@@ -8,6 +8,7 @@ import type { File } from "multer";
 export interface IAuthenticatedRequest extends Request {
   user?: {
     userId: string;
+    email: string;
   };
   file?: File;
 }
@@ -44,7 +45,10 @@ export const verifyToken = async (
         return next(error);
       }
 
-      req.user = { userId: (decoded as TokenPayload).userId };
+      req.user = {
+        userId: (decoded as TokenPayload).userId,
+        email: (decoded as TokenPayload).email,
+      };
       next();
     });
   } catch (error) {

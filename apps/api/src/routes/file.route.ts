@@ -32,7 +32,8 @@ router.post(
 
     const response = await drive.files.create({
       requestBody: {
-        name: "zerVault/" + req.body.originalFileName + ".enc",
+        name: req.body.originalFileName + ".enc",
+        parents: [driveConn.rootFolderId!],
         mimeType: "application/octet-stream",
       },
       media: {

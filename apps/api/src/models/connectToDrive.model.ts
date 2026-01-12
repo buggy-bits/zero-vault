@@ -31,6 +31,9 @@ const GoogleDriveConnectionSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  rootFolderId: {
+    type: String,
+  },
 });
 
 export const GoogleDriveConnection = mongoose.model(

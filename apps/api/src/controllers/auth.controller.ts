@@ -130,10 +130,12 @@ export const loginUser = (req: Request, res: Response, next: NextFunction) => {
         // correct
         const accessToken = generateAccessToken({
           userId: existingUser._id.toString(),
+          email: existingUser.email,
         });
 
         const refreshToken = generateRefreshToken({
           userId: existingUser._id.toString(),
+          email: existingUser.email,
         });
 
         res.cookie("refreshToken", refreshToken, {
@@ -187,7 +189,10 @@ export const generateNewAccessToken = async (
       JWT_REFRESH_TOKEN_SECRET || "i-am-key"
     ) as TokenPayload;
 
-    const newToken = generateAccessToken({ userId: payload.userId });
+    const newToken = generateAccessToken({
+      userId: payload.userId,
+      email: payload.email,
+    });
 
     res.status(200).json({
       status: "success",
@@ -223,9 +228,11 @@ export const loginGuestUser = (
       }
       const accessToken = generateAccessToken({
         userId: existingUser._id.toString(),
+        email: existingUser.email,
       });
       const refreshToken = generateRefreshToken({
         userId: existingUser._id.toString(),
+        email: existingUser.email,
       });
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,

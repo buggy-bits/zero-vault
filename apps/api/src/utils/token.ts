@@ -13,6 +13,7 @@ import {
 
 export interface TokenPayload {
   userId: string;
+  email: string;
 }
 
 // Facade pattern is giving some conflicts with expiresIn option type, so i choose to break DRY
