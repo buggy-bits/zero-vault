@@ -21,15 +21,15 @@ export const verifyToken = async (
   try {
     let token: string | undefined;
 
+    // Fallback to cookie
+    if (!token && req.cookies?.accessToken) {
+      token = req.cookies.accessToken;
+    }
+
     // Read Authorization header
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
-    }
-
-    // Fallback to cookie
-    if (!token && req.cookies?.accessToken) {
-      token = req.cookies.accessToken;
     }
 
     if (!token) {

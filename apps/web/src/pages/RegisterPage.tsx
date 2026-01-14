@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Container,
   Paper,
   Box,
   Typography,
   TextField,
-  Button,
   Link,
   Alert,
   InputAdornment,
@@ -17,6 +16,7 @@ import {
   Email,
   Lock,
   Person,
+  Shield,
 } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -41,17 +41,12 @@ const schema = yup.object({
       "Password must contain uppercase, lowercase, and number"
     )
     .required("Password is required"),
-  // confirmPassword: yup
-  //   .string()
-  //   .oneOf([yup.ref('password')], 'Passwords must match')
-  //   .required('Please confirm your password'),
 });
 
 type RegisterFormData = yup.InferType<typeof schema>;
 
 export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
-  // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState(false);
   const { register: registerUser, loading, error } = useAuth();
   const navigate = useNavigate();
@@ -68,7 +63,7 @@ export function RegisterPage() {
   const password = watch("password");
 
   const getPasswordStrength = (password: string) => {
-    if (!password) return { score: 0, label: "", color: "" };
+    if (!password) return { score: 0, label: "", color: "text.secondary" };
 
     let score = 0;
     if (password.length >= 8) score++;
@@ -78,12 +73,12 @@ export function RegisterPage() {
     if (/[^a-zA-Z\d]/.test(password)) score++;
 
     const levels = [
-      { label: "", color: "" },
-      { label: "Very Weak", color: "error.main" },
-      { label: "Weak", color: "warning.main" },
-      { label: "Fair", color: "info.main" },
-      { label: "Good", color: "success.light" },
-      { label: "Strong", color: "success.main" },
+      { label: "", color: "text.secondary" },
+      { label: "Very Weak", color: "#dc2626" },
+      { label: "Weak", color: "#d97706" },
+      { label: "Fair", color: "#0284c7" },
+      { label: "Good", color: "#059669" },
+      { label: "Strong", color: "#059669" },
     ];
 
     return { score, ...levels[score] };
@@ -106,7 +101,7 @@ export function RegisterPage() {
       );
       setSuccess(true);
       setTimeout(() => navigate("/auth/login"), 2000);
-    } catch (error) {
+    } catch {
       // Error is handled by context
     }
   };
@@ -116,7 +111,7 @@ export function RegisterPage() {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)",
+          bgcolor: "background.default",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -125,20 +120,36 @@ export function RegisterPage() {
       >
         <Container maxWidth="sm">
           <Paper
-            elevation={24}
+            elevation={0}
             sx={{
-              p: 4,
+              p: { xs: 3, sm: 5 },
               borderRadius: 3,
-              background: "rgba(26, 26, 46, 0.8)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
               textAlign: "center",
             }}
           >
-            <Typography variant="h4" sx={{ mb: 2, color: "success.main" }}>
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                borderRadius: "50%",
+                bgcolor: "success.main",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mx: "auto",
+                mb: 3,
+              }}
+            >
+              <Shield sx={{ fontSize: 36, color: "white" }} />
+            </Box>
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
               Registration Successful!
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body1" color="text.secondary">
               Your account has been created. Redirecting to login...
             </Typography>
           </Paper>
@@ -151,7 +162,7 @@ export function RegisterPage() {
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)",
+        bgcolor: "background.default",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -160,31 +171,46 @@ export function RegisterPage() {
     >
       <Container maxWidth="sm">
         <Paper
-          elevation={24}
+          elevation={0}
           sx={{
-            p: 4,
+            p: { xs: 3, sm: 5 },
             borderRadius: 3,
-            background: "rgba(26, 26, 46, 0.8)",
-            backdropFilter: "blur(10px)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
           }}
         >
           <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                bgcolor: "primary.main",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mx: "auto",
+                mb: 3,
+                boxShadow: "0 4px 14px 0 rgba(79, 70, 229, 0.3)",
+              }}
+            >
+              <Shield sx={{ fontSize: 32, color: "white" }} />
+            </Box>
+            
             <Typography
               variant="h4"
               sx={{
                 fontWeight: 700,
-                background: "linear-gradient(45deg, #6366f1 30%, #10b981 90%)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                color: "text.primary",
                 mb: 1,
               }}
             >
               Create Account
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Join EchoSphere and start mocking APIs
+              Join ZeroVault — Your end-to-end encrypted vault
             </Typography>
           </Box>
 
@@ -205,7 +231,7 @@ export function RegisterPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Person color="action" />
+                    <Person sx={{ color: "text.secondary" }} />
                   </InputAdornment>
                 ),
               }}
@@ -222,7 +248,7 @@ export function RegisterPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Email color="action" />
+                    <Email sx={{ color: "text.secondary" }} />
                   </InputAdornment>
                 ),
               }}
@@ -239,7 +265,7 @@ export function RegisterPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Lock color="action" />
+                    <Lock sx={{ color: "text.secondary" }} />
                   </InputAdornment>
                 ),
                 endAdornment: (
@@ -247,6 +273,7 @@ export function RegisterPage() {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
+                      size="small"
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -259,16 +286,17 @@ export function RegisterPage() {
               <Box sx={{ mt: 1, mb: 1 }}>
                 <Typography
                   variant="caption"
-                  sx={{ color: passwordStrength.color }}
+                  sx={{ color: passwordStrength.color, fontWeight: 500 }}
                 >
                   Password Strength: {passwordStrength.label}
                 </Typography>
                 <Box
                   sx={{
                     height: 4,
-                    backgroundColor: "grey.700",
+                    backgroundColor: "divider",
                     borderRadius: 2,
                     mt: 0.5,
+                    overflow: "hidden",
                   }}
                 >
                   <Box
@@ -284,33 +312,6 @@ export function RegisterPage() {
               </Box>
             )}
 
-            {/* <TextField
-              fullWidth
-              label="Confirm Password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              margin="normal"
-              {...register('confirmPassword')}
-              error={!!errors.confirmPassword}
-              helperText={errors.confirmPassword?.message}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Lock color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      edge="end"
-                    >
-                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            /> */}
-
             <LoadingButton
               type="submit"
               fullWidth
@@ -321,7 +322,6 @@ export function RegisterPage() {
                 mb: 2,
                 py: 1.5,
                 fontSize: "1rem",
-                borderRadius: 2,
               }}
             >
               Create Account
@@ -331,13 +331,17 @@ export function RegisterPage() {
           <Box sx={{ textAlign: "center", mt: 3 }}>
             <Typography variant="body2" color="text.secondary">
               Already have an account?{" "}
-              <Link component={RouterLink} to="/auth/login" color="primary">
+              <Link 
+                component={RouterLink} 
+                to="/auth/login" 
+                sx={{ 
+                  color: "primary.main",
+                  fontWeight: 500,
+                  textDecoration: "none",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
                 Sign in here
-              </Link>
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              <Link component={RouterLink} to="/" color="primary">
-                Back to Home
               </Link>
             </Typography>
           </Box>

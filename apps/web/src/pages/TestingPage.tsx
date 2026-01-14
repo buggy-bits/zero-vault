@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { generateKeyPair } from "../crypto/identity";
 import { encryptPrivateKey, decryptPrivateKey } from "../crypto/password";
 import { encryptText, decryptText } from "../crypto/symmetric";
 import { encryptAESKey, decryptAESKey } from "../crypto/hybrid";
-import { debugDecryptNote } from "../debug/decryptNote";
 
 function TestingPage() {
   const [password, setPassword] = useState("");
   const [plaintext, setPlaintext] = useState("");
-  const [output, setOutput] = useState<any>({});
+  const [output, setOutput] = useState<Record<string, unknown>>({});
   const [privateKey, setPrivateKey] = useState<CryptoKey | null>(null);
   const [publicKey, setPublicKey] = useState<JsonWebKey | null>(null);
 
@@ -34,40 +33,59 @@ function TestingPage() {
   }
 
   async function handleDecrypt() {
-    const pk = await decryptPrivateKey(output.encryptedPrivateKey, password);
+    const pk = await decryptPrivateKey(output.encryptedPrivateKey as { ciphertext: string; iv: string; salt: string }, password);
     setPrivateKey(pk);
 
     const rawKey = await decryptAESKey(output.wrappedKey, pk);
-
-    const text = await decryptText(output.encryptedText, output.iv, rawKey);
+    const text = await decryptText(output.encryptedText as string, output.iv as string, rawKey);
 
     alert(text);
   }
 
-  useEffect(() => {
-    debugDecryptNote();
-  }, []);
-
   return (
-    <div>
-      <input
-        placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <textarea
-        placeholder="Plaintext"
-        onChange={(e) => setPlaintext(e.target.value)}
-      />
-      <button onClick={handleGenerate} className="m-4">
-        Generate Keys
-      </button>
-      <button onClick={handleEncrypt} className="m-4">
-        Encrypt
-      </button>
-      <button onClick={handleDecrypt} className="m-4">
-        Decrypt
-      </button>
-      <pre>{JSON.stringify(output, null, 2)}</pre>
+    <div style={{ padding: 20 }}>
+      <h2>Crypto Testing Page</h2>
+      <p>Use this page to test encryption/decryption flows</p>
+      
+      <div style={{ marginBottom: 20 }}>
+        <input
+          placeholder="Password"
+          type="password"
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ padding: 8, marginRight: 8 }}
+        />
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <textarea
+          placeholder="Plaintext to encrypt"
+          onChange={(e) => setPlaintext(e.target.value)}
+          rows={4}
+          style={{ width: "100%", maxWidth: 400, padding: 8 }}
+        />
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+        <button onClick={handleGenerate} style={{ padding: "8px 16px" }}>
+          1. Generate Keys
+        </button>
+        <button onClick={handleEncrypt} style={{ padding: "8px 16px" }}>
+          2. Encrypt
+        </button>
+        <button onClick={handleDecrypt} style={{ padding: "8px 16px" }}>
+          3. Decrypt
+        </button>
+      </div>
+
+      <pre style={{ 
+        background: "#1a1a2e", 
+        padding: 16, 
+        borderRadius: 8,
+        overflow: "auto",
+        maxHeight: 400
+      }}>
+        {JSON.stringify(output, null, 2)}
+      </pre>
     </div>
   );
 }

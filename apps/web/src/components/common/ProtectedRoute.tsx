@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading } = useAuth();
+  const { vaultStatus, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -19,9 +19,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!isAuthenticated) {
+  // Redirect to login if not authenticated
+  if (vaultStatus === 'unauthenticated') {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
+  // Note: 'locked' state is handled by MainApp showing UnlockVaultModal
+  // This component only renders when vaultStatus is 'unlocked'
+  
   return <>{children}</>;
 }

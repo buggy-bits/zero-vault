@@ -1,47 +1,77 @@
 import { decryptAESKey } from "../crypto/hybrid";
 import { decryptBytes } from "../crypto/symmetric";
 import { base64ToBuffer } from "../crypto/utils";
+import { API_ENDPOINTS } from "../constants";
+import { ENV } from "../config/env";
+
+interface FileMetadata {
+  _id: string;
+  originalFileName: string;
+  mimeType: string;
+  encryptedDEK: string;
+  dekIv: string;
+  ephemeralPublicKey: string;
+  iv: string;
+}
 
 export async function downloadAndDecryptFile(
-  note: any,
-  privateKey: CryptoKey,
-  token: string
+  file: FileMetadata,
+  privateKey: CryptoKey
 ) {
   // 1. Download encrypted file
   const res = await fetch(
-    `http://localhost:3000/api/v1/files/download/${note._id}`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      credentials: "include",
-    }
+    `${ENV.API_BASE_URL}${API_ENDPOINTS.FILES.DOWNLOAD}/${file._id}`,
+    { credentials: "include" }
   );
 
+  if (!res.ok) {
+    throw new Error("Failed to download file");
+  }
+
   const encryptedBuffer = await res.arrayBuffer();
-  console.log(note);
-  // 2. Decrypt DEK
+
+  // 2. Parse ephemeralPublicKey (handle both string and object formats)
+  let ephemeralPublicKey: JsonWebKey;
+  if (typeof file.ephemeralPublicKey === "string") {
+    ephemeralPublicKey = JSON.parse(file.ephemeralPublicKey);
+  } else {
+    ephemeralPublicKey = file.ephemeralPublicKey as unknown as JsonWebKey;
+  }
+
+  // 3. Parse iv (handle both string and array formats)
+  let ivArray: number[];
+  if (typeof file.iv === "string") {
+    ivArray = JSON.parse(file.iv);
+  } else {
+    ivArray = file.iv as unknown as number[];
+  }
+
+  // 4. Decrypt DEK
   const rawDEK = await decryptAESKey(
     {
-      encryptedAESKey: note.encryptedDEK,
-      iv: note.dekIv,
-      ephemeralPublicKey: JSON.parse(note.ephemeralPublicKey),
+      encryptedAESKey: file.encryptedDEK,
+      iv: file.dekIv,
+      ephemeralPublicKey,
     },
     privateKey
   );
 
+  // 5. Decrypt file
   const decryptedBuffer = await decryptBytes(
     encryptedBuffer,
-    JSON.parse(note.iv),
+    ivArray,
     base64ToBuffer(rawDEK)
   );
 
+  // 4. Trigger download
   const blob = new Blob([decryptedBuffer], {
-    type: note.mimeType,
+    type: file.mimeType,
   });
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = note.originalFileName;
+  a.download = file.originalFileName;
   document.body.appendChild(a);
   a.click();
   a.remove();

@@ -6,16 +6,12 @@ export const authService = {
   async login(credentials: LoginCredentials) {
     const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
     const { data: user, publicKey, encryptedPrivateKey } = response.data;
-    console.log("data from server:", response.data);
-    // localStorage.setItem("accessToken", accessToken);
-
     return { user, publicKey, encryptedPrivateKey };
   },
 
   async guestLogin() {
     const response = await api.get(API_ENDPOINTS.AUTH.GUEST_LOGIN);
-    const { data: user, accessToken } = response.data;
-    localStorage.setItem("accessToken", accessToken);
+    const { data: user } = response.data;
     return user;
   },
 
@@ -25,15 +21,22 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<User> {
-    const response = await api.get("/api/v1/user/me");
+    const response = await api.get(API_ENDPOINTS.AUTH.ME);
     return response.data;
   },
 
   logout() {
-    localStorage.removeItem("accessToken");
+    return api.post(API_ENDPOINTS.AUTH.LOGOUT);
   },
 
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem("accessToken");
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      // We cannot check httpOnly cookies from JavaScript,
+      // so we verify by calling /me endpoint instead
+      await api.get(API_ENDPOINTS.AUTH.ME);
+      return true;
+    } catch {
+      return false;
+    }
   },
 };

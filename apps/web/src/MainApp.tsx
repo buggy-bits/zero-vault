@@ -4,7 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Toaster } from "react-hot-toast";
 
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -14,128 +14,179 @@ import ShareNotePage from "./pages/ShareNotePage";
 import ReceiverInbox from "./pages/InboxPage";
 import UploadFile from "./pages/UploadFile";
 
-import Navbar from "./components/NavBar";
 import UnlockVaultModal from "./components/UnlockVaultModal";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
 import { useAuth } from "./contexts/AuthContext";
 import EncryptedFilesList from "./pages/EncryptedFileList";
 import MyFiles from "./pages/Myfiles";
 import ShareDownload from "./pages/ShareDownload";
+import SharedNote from "./pages/SharedNote";
+import Navbar from "./components/NavBar";
+import SettingsPage from "./pages/SettingsPage";
+import { Box, CircularProgress } from "@mui/material";
+import { ROUTES } from "./constants";
 
 function MainApp() {
-  const { user, setUser, privateKey } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { vaultStatus, loading, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    fetch("http://localhost:3000/api/v1/auth/me", {
-      credentials: "include",
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setUser(data);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  // Show loading spinner while checking auth state
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  if (loading) return <p>Loading…</p>;
+  // Unauthenticated: Show login/register routes only
+  if (vaultStatus === 'unauthenticated') {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <Router>
+          <Routes>
+            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+            <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+            <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
+          </Routes>
+        </Router>
+      </>
+    );
+  }
 
+  // Locked: Show unlock modal overlay
+  if (vaultStatus === 'locked') {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <UnlockVaultModal />
+      </>
+    );
+  }
+
+  // Unlocked: Full app access
   return (
-    <Router>
-      {/* 🔐 Vault lock overlay (NOT a route) */}
-      {user && !privateKey && <UnlockVaultModal />}
+    <>
+      <Toaster position="top-right" />
+      <Router>
+        {isAuthenticated && <Navbar />}
 
-      {/* ✅ Navbar only for authenticated users */}
-      {user && <Navbar />}
+        <Routes>
+          {/* Auth routes redirect to home when authenticated */}
+          <Route
+            path={ROUTES.LOGIN}
+            element={<Navigate to="/" replace />}
+          />
+          <Route
+            path={ROUTES.REGISTER}
+            element={<Navigate to="/" replace />}
+          />
 
-      <Routes>
-        {/* 🌍 PUBLIC ROUTES */}
-        <Route
-          path="/auth/login"
-          element={!user ? <LoginPage /> : <Navigate to="/" />}
-        />
+          {/* Protected routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <CreateNote />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/auth/register"
-          element={!user ? <RegisterPage /> : <Navigate to="/" />}
-        />
+          <Route
+            path={ROUTES.CREATE}
+            element={
+              <ProtectedRoute>
+                <CreateNote />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* 🔒 PROTECTED ROUTES */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <TestingPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path={ROUTES.SHARE}
+            element={
+              <ProtectedRoute>
+                <ShareNotePage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/create"
-          element={
-            <ProtectedRoute>
-              <CreateNote />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path={ROUTES.INBOX}
+            element={
+              <ProtectedRoute>
+                <ReceiverInbox />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/share"
-          element={
-            <ProtectedRoute>
-              <ShareNotePage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path={ROUTES.UPLOAD}
+            element={
+              <ProtectedRoute>
+                <UploadFile />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/inbox"
-          element={
-            <ProtectedRoute>
-              <ReceiverInbox />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path={ROUTES.FILES} // Was using custom paths before, strict to constants now if possible
+            element={
+              <ProtectedRoute>
+                <MyFiles />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/myfiles" // Keeping backward compat or just updating to match constant which is /files
+            element={
+              <ProtectedRoute>
+                <EncryptedFilesList />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/upload"
-          element={
-            <ProtectedRoute>
-              <UploadFile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/myfiles"
-          element={
-            <ProtectedRoute>
-              <EncryptedFilesList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/myfilesss"
-          element={
-            <ProtectedRoute>
-              <MyFiles />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/share/:shareId"
-          element={
-            <ProtectedRoute>
-              <ShareDownload />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/share/:shareId"
+            element={
+              <ProtectedRoute>
+                <ShareDownload />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* 🚨 CATCH-ALL */}
-        <Route
-          path="*"
-          element={<Navigate to={user ? "/" : "/auth/login"} />}
-        />
-      </Routes>
-    </Router>
+          <Route
+            path="/notes/:shareId"
+            element={
+              <ProtectedRoute>
+                <SharedNote />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path={ROUTES.SETTINGS}
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/testing"
+            element={
+              <ProtectedRoute>
+                <TestingPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </>
   );
 }
 

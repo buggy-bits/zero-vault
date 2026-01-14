@@ -16,6 +16,7 @@ router.get("/public-key", verifyToken, async (req, res) => {
   res.json({
     userId: user._id,
     publicKey: user.publicKey,
+    email: user.email,
   });
 });
 export default router;

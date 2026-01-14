@@ -13,19 +13,47 @@ import { GoogleDriveConnection } from "../models/connectToDrive.model";
 import { getDriveClient } from "../utils/getDriveClient";
 
 const router = Router();
-
-router.post("/", verifyToken, async (req: IAuthenticatedRequest, res) => {
-  const { noteId, userId, encryptedDEK, dekIv, ephemeralPublicKey } = req.body;
-
-  await NoteKey.create({
+/**
+ * Share note with another user
+ */
+router.post("/note", verifyToken, async (req: IAuthenticatedRequest, res) => {
+  const {
     noteId,
-    userId,
+    receiverEmail,
     encryptedDEK,
     dekIv,
     ephemeralPublicKey,
+  } = req.body;
+
+  const receiver = await UserModel.findOne({ email: receiverEmail });
+  if (!receiver) return res.sendStatus(404);
+
+  await NoteKey.findOneAndUpdate(
+    { noteId, userId: receiver._id },
+    {
+      encryptedDEK,
+      dekIv,
+      ephemeralPublicKey,
+      grantedBy: req.user!.userId,
+      grantedAt: new Date(),
+      isRevoked: false,
+      revokedAt: null,
+    },
+    { upsert: true }
+  );
+
+  const shareId = crypto.randomUUID();
+
+  await FileShare.create({
+    shareId,
+    noteId,
+    receiverEmail,
+    createdBy: req.user!.userId,
   });
 
-  res.status(201).json({ message: "Note shared" });
+  res.json({
+    shareLink: `${FRONTEND_URL}/share/note/${shareId}`,
+  });
 });
 
 /**
@@ -83,8 +111,10 @@ router.post("/file", verifyToken, async (req: IAuthenticatedRequest, res) => {
     shareLink: `${FRONTEND_URL}/share/${shareId}`,
   });
 });
-// download
 
+/**
+ * Download shared file
+ */
 router.get(
   "/download/:shareId",
   verifyToken,

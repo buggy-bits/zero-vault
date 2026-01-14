@@ -8,13 +8,9 @@ import {
   TokenPayload,
 } from "../utils/token";
 import jwt from "jsonwebtoken";
-import {
-  GUEST_USER_EMAIL,
-  JWT_REFRESH_TOKEN_SECRET,
-  NODE_ENV,
-} from "../config/env";
+import { GUEST_USER_EMAIL, JWT_REFRESH_TOKEN_SECRET } from "../config/env";
+import { accessCookie, refreshCookie } from "../config/cookies";
 const saltRounds = 10;
-const isProduction = NODE_ENV === "production";
 
 export const registerUser = async (
   req: Request,
@@ -138,17 +134,9 @@ export const loginUser = (req: Request, res: Response, next: NextFunction) => {
           email: existingUser.email,
         });
 
-        res.cookie("refreshToken", refreshToken, {
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? "none" : "lax",
-        });
+        res.cookie("refreshToken", refreshToken, refreshCookie);
 
-        res.cookie("accessToken", accessToken, {
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? "none" : "lax",
-        });
+        res.cookie("accessToken", accessToken, accessCookie);
 
         res.status(200).json({
           status: "success",
@@ -175,9 +163,8 @@ export const generateNewAccessToken = async (
   next: NextFunction
 ) => {
   try {
-    const refreshTokenObj = req.cookies && req.cookies.refreshToken;
+    const token = req.cookies?.refreshToken;
 
-    const token = refreshTokenObj && refreshTokenObj.token;
     if (!token) {
       const error: AppError = new Error("Refresh token missing");
       error.status = 401;
@@ -189,16 +176,24 @@ export const generateNewAccessToken = async (
       JWT_REFRESH_TOKEN_SECRET || "i-am-key"
     ) as TokenPayload;
 
-    const newToken = generateAccessToken({
+    const newAccessToken = generateAccessToken({
       userId: payload.userId,
       email: payload.email,
     });
 
-    res.status(200).json({
-      status: "success",
-      message: "New access token generated",
-      accessToken: newToken,
+    const newRefreshToken = generateRefreshToken({
+      userId: payload.userId,
+      email: payload.email,
     });
+
+    res
+      .cookie("accessToken", newAccessToken, accessCookie)
+      .cookie("refreshToken", newRefreshToken, refreshCookie)
+      .status(200)
+      .json({
+        status: "success",
+        message: "New access token generated",
+      });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
       const jwtError: AppError = new Error("Invalid refresh token");
@@ -234,12 +229,9 @@ export const loginGuestUser = (
         userId: existingUser._id.toString(),
         email: existingUser.email,
       });
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
-        // path: '/auth/token/refresh',
-      });
+      res.cookie("refreshToken", refreshToken, refreshCookie);
+
+      res.cookie("accessToken", accessToken, accessCookie);
 
       res.status(200).json({
         status: "success",
@@ -249,9 +241,24 @@ export const loginGuestUser = (
           email,
           // userName: existingUser.userName,
         },
-        accessToken,
       });
     });
+  } catch (error) {
+    next(error);
+    return;
+  }
+};
+
+export const logoutUser = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res
+      .clearCookie("accessToken", accessCookie)
+      .clearCookie("refreshToken", refreshCookie)
+      .status(200)
+      .json({
+        status: "success",
+        message: "User logged out successfully",
+      });
   } catch (error) {
     next(error);
     return;

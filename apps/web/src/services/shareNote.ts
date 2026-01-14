@@ -22,7 +22,7 @@ export async function shareNote(
   const wrappedForAlice = await encryptAESKey(rawDEK, recipientPublicKey);
 
   // 3. Send to backend
-  await fetch("http://localhost:3000/api/v1/share", {
+  await fetch("http://localhost:3000/api/v1/share/note", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

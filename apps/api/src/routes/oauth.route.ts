@@ -9,6 +9,7 @@ import { GoogleDriveConnection } from "../models/connectToDrive.model";
 import { encryptToken } from "../utils/token";
 import { getDriveClient } from "../utils/getDriveClient";
 import { getOrCreateZeroVaultFolder } from "../utils/getOrCreateFolder";
+import { FRONTEND_URL } from "../config/env";
 
 const router = Router();
 
@@ -25,7 +26,6 @@ router.get("/google/start", verifyToken, (req: IAuthenticatedRequest, res) => {
 
 router.get("/google/callback", async (req, res) => {
   const { code, state } = req.query;
-  // res.send({ message: "test" });
 
   if (!code || !state) {
     return res.status(400).send("Invalid OAuth response");
@@ -60,7 +60,26 @@ router.get("/google/callback", async (req, res) => {
   );
 
   // 4. Redirect back to frontend
-  res.redirect("http://localhost:5173/settings?drive=connected");
+  const redirectUrl = FRONTEND_URL 
+    ? `${FRONTEND_URL}/settings?drive=connected` 
+    : "http://localhost:5173/settings?drive=connected";
+    
+  res.redirect(redirectUrl);
+});
+
+router.get("/google/status", verifyToken, async (req: IAuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.userId;
+    const connection = await GoogleDriveConnection.findOne({ userId, isActive: true });
+
+    if (connection) {
+      return res.json({ isConnected: true, connectedAt: connection.connectedAt });
+    } else {
+      return res.json({ isConnected: false });
+    }
+  } catch (error) {
+    return res.status(500).json({ isConnected: false, error: "Failed to check status" });
+  }
 });
 
 export default router;

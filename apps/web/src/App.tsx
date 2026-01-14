@@ -2,7 +2,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { AuthProvider } from "./contexts/AuthContext";
 
-import { darkTheme } from "./theme";
+import { lightTheme } from "./theme";
 
 // Pages
 
@@ -10,7 +10,7 @@ import MainApp from "./MainApp";
 
 function App() {
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <CssBaseline />
       <AuthProvider>
         <MainApp />

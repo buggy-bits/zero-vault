@@ -51,7 +51,9 @@ export const extractUser = async (
     }
 
     res.json({
-      userId: req.user?.userId,
+      authenticated: true,
+      _id: req.user?.userId,
+      email: req.user?.email,
       publicKey: existingUser.publicKey,
       encryptedPrivateKey: existingUser.encryptedPrivateKey,
     });

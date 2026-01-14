@@ -104,5 +104,5 @@ NoteSchema.methods.softDelete = function () {
   this.deletedAt = new Date();
   return this.save();
 };
-
+NoteSchema.index({ ownerId: 1, isDeleted: 1 });
 export const Note = mongoose.model("Note", NoteSchema);
