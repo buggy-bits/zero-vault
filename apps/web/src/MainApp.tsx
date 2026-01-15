@@ -13,6 +13,7 @@ import CreateNote from "./pages/CreateNote";
 import ShareNotePage from "./pages/ShareNotePage";
 import ReceiverInbox from "./pages/InboxPage";
 import UploadFile from "./pages/UploadFile";
+import HomePage from "./pages/HomePage";
 
 import UnlockVaultModal from "./components/UnlockVaultModal";
 import { ProtectedRoute } from "./components/common/ProtectedRoute";
@@ -38,16 +39,17 @@ function MainApp() {
     );
   }
 
-  // Unauthenticated: Show login/register routes only
+  // Unauthenticated: Show homepage, login, and register routes
   if (vaultStatus === 'unauthenticated') {
     return (
       <>
         <Toaster position="top-right" />
         <Router>
           <Routes>
+            <Route path="/" element={<HomePage />} />
             <Route path={ROUTES.LOGIN} element={<LoginPage />} />
             <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
-            <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </>
