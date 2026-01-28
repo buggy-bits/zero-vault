@@ -4,8 +4,8 @@ services:
     image: mongo:latest
     container_name: mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: doraemon
-      MONGO_INITDB_ROOT_PASSWORD: robot
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: zeroVaultDB
     ports:
       - "27017:27017"
