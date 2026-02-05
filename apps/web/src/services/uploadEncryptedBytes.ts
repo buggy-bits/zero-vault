@@ -1,6 +1,8 @@
 import { encryptBytes } from "../crypto/symmetric";
 import { encryptAESKey } from "../crypto/hybrid";
 import { bufferToBase64 } from "../crypto/utils";
+import { API_ENDPOINTS } from "../constants";
+import api from "../services/api";
 
 export async function uploadEncryptedFile(
   file: File,
@@ -39,15 +41,15 @@ export async function uploadEncryptedFile(
   formData.append("mimeType", file.type);
 
   // 5. Send to backend
-  const res = await fetch("http://localhost:3000/api/v1/files/upload", {
-    method: "POST",
+
+  const  res = await api.post(API_ENDPOINTS.FILES.UPLOAD, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: formData,
-  });
+  }
+  );
 
-  if (!res.ok) throw new Error("Upload failed");
+  if (!res.data.success) throw new Error("Upload failed");
 
-  return res.json();
+  return res.data;
 }

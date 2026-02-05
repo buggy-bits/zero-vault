@@ -39,7 +39,7 @@ router.post("/note", verifyToken, async (req: IAuthenticatedRequest, res) => {
       isRevoked: false,
       revokedAt: null,
     },
-    { upsert: true }
+    { upsert: true },
   );
 
   const shareId = crypto.randomUUID();
@@ -94,9 +94,9 @@ router.post("/file", verifyToken, async (req: IAuthenticatedRequest, res) => {
       isRevoked: false,
       revokedAt: null,
     },
-    { upsert: true }
+    { upsert: true },
   );
-  console.log("here");
+
   // 4. Create share link
   const shareId = crypto.randomUUID();
 
@@ -144,12 +144,12 @@ router.get(
 
     const driveRes = await drive.files.get(
       { fileId: note.driveFileId!, alt: "media" },
-      { responseType: "arraybuffer" }
+      { responseType: "arraybuffer" },
     );
 
     res.setHeader("Content-Type", "application/octet-stream");
     res.send(Buffer.from(driveRes.data as ArrayBuffer));
-  }
+  },
 );
 
 export default router;

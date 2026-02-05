@@ -4,11 +4,10 @@ import { encryptAESKey } from "../crypto/hybrid";
 import { useAuth } from "../contexts/AuthContext";
 import { bufferToBase64 } from "../crypto/utils";
 import { API_ENDPOINTS } from "../constants";
-import { ENV } from "../config/env";
 import toast from "react-hot-toast";
 import { Box, Paper, Typography, Button, LinearProgress } from "@mui/material";
-import { CloudUpload, InsertDriveFile, Lock, Upload } from "@mui/icons-material";
-
+import { InsertDriveFile, Lock, Upload } from "@mui/icons-material";
+import api from "../services/api";
 export default function UploadFile() {
   const { user, publicKey } = useAuth();
   const [file, setFile] = useState<File | null>(null);
@@ -40,14 +39,14 @@ export default function UploadFile() {
       formData.append(
         "encryptedFile",
         new Blob([encryptedData]),
-        file.name + ".enc"
+        file.name + ".enc",
       );
       formData.append("iv", JSON.stringify(iv));
       formData.append("encryptedDEK", wrapped.encryptedAESKey);
       formData.append("dekIv", wrapped.iv);
       formData.append(
         "ephemeralPublicKey",
-        JSON.stringify(wrapped.ephemeralPublicKey)
+        JSON.stringify(wrapped.ephemeralPublicKey),
       );
       formData.append("originalFileName", file.name);
       formData.append("mimeType", file.type);
@@ -55,13 +54,9 @@ export default function UploadFile() {
       toast.loading("Uploading to secure storage...", { id: toastId });
 
       // 5. Send to backend
-      const res = await fetch(`${ENV.API_BASE_URL}${API_ENDPOINTS.FILES.UPLOAD}`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
+      const res = await api.post(API_ENDPOINTS.FILES.UPLOAD, formData);
 
-      if (!res.ok) {
+      if (!res.data.success) {
         throw new Error("Upload failed");
       }
 
@@ -79,10 +74,10 @@ export default function UploadFile() {
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 700, mx: "auto" }}>
       <Box sx={{ mb: 4 }}>
-        <Typography 
-          variant="h4" 
-          sx={{ 
-            fontWeight: 700, 
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 700,
             color: "text.primary",
             display: "flex",
             alignItems: "center",
@@ -129,21 +124,28 @@ export default function UploadFile() {
             transition: "background-color 0.2s",
           }}
         >
-          <InsertDriveFile sx={{ fontSize: 40, color: file ? "white" : "text.secondary" }} />
+          <InsertDriveFile
+            sx={{ fontSize: 40, color: file ? "white" : "text.secondary" }}
+          />
         </Box>
-        
+
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
           {file ? file.name : "Select a file to encrypt"}
         </Typography>
-        
+
         {file && (
           <Typography variant="body2" color="text.secondary">
             {(file.size / 1024 / 1024).toFixed(2)} MB
           </Typography>
         )}
 
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 400 }}>
-          Your file will be encrypted locally with AES-256 before upload. Only you can decrypt it.
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ maxWidth: 400 }}
+        >
+          Your file will be encrypted locally with AES-256 before upload. Only
+          you can decrypt it.
         </Typography>
 
         <input
@@ -154,11 +156,11 @@ export default function UploadFile() {
           onChange={(e) => setFile(e.target.files?.[0] || null)}
           disabled={loading}
         />
-        
+
         <label htmlFor="raised-button-file">
-          <Button 
-            variant="outlined" 
-            component="span" 
+          <Button
+            variant="outlined"
+            component="span"
             disabled={loading}
             sx={{ mt: 1 }}
           >
@@ -169,7 +171,11 @@ export default function UploadFile() {
         {loading && (
           <Box sx={{ width: "100%", mt: 2 }}>
             <LinearProgress variant="determinate" value={progress} />
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1, display: "block" }}
+            >
               {progress < 80 ? "Encrypting..." : "Uploading..."}
             </Typography>
           </Box>

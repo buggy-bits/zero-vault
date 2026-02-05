@@ -24,22 +24,24 @@ export default function ShareDownload() {
 
       try {
         setStatus("Fetching file metadata...");
-        
+
         // 1. get metadata
-        const metaRes = await api.get(`${API_ENDPOINTS.METADATA.SHARE}/${shareId}`);
+        const metaRes = await api.get(
+          `${API_ENDPOINTS.METADATA.SHARE}/${shareId}`,
+        );
         const meta = metaRes.data;
 
         setStatus("Downloading encrypted file...");
-        
+
         // 2. download encrypted file
         const fileRes = await fetch(
           `${ENV.API_BASE_URL}${API_ENDPOINTS.SHARE.DOWNLOAD}/${shareId}`,
-          { credentials: "include" }
+          { credentials: "include" },
         );
         const encryptedBuffer = await fileRes.arrayBuffer();
 
         setStatus("Decrypting file...");
-        
+
         // 3. decrypt DEK
         const rawDEK = await decryptAESKey(
           {
@@ -47,7 +49,7 @@ export default function ShareDownload() {
             iv: meta.dekIv,
             ephemeralPublicKey: meta.ephemeralPublicKey,
           },
-          privateKey
+          privateKey,
         );
 
         // 4. decrypt file - handle IV format
@@ -65,7 +67,7 @@ export default function ShareDownload() {
         const decrypted = await decryptBytes(
           encryptedBuffer,
           iv,
-          base64ToBuffer(rawDEK)
+          base64ToBuffer(rawDEK),
         );
 
         setStatus("Starting download...");
@@ -82,7 +84,7 @@ export default function ShareDownload() {
         a.click();
 
         URL.revokeObjectURL(url);
-        
+
         setComplete(true);
         setStatus("File downloaded successfully!");
       } catch (err) {
@@ -91,14 +93,14 @@ export default function ShareDownload() {
       }
     }
 
-    if (privateKey && vaultStatus === 'unlocked') {
+    if (privateKey && vaultStatus === "unlocked") {
       run();
     }
   }, [privateKey, vaultStatus, shareId]);
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         minHeight: "60vh",
         display: "flex",
         alignItems: "center",
@@ -115,7 +117,11 @@ export default function ShareDownload() {
           width: "100%",
           bgcolor: "background.paper",
           border: "1px solid",
-          borderColor: error ? "error.light" : complete ? "success.light" : "divider",
+          borderColor: error
+            ? "error.light"
+            : complete
+            ? "success.light"
+            : "divider",
           borderRadius: 2,
         }}
       >

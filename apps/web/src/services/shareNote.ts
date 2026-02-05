@@ -1,4 +1,6 @@
+import { API_ENDPOINTS } from "../constants";
 import { decryptAESKey, encryptAESKey } from "../crypto/hybrid";
+import api from "../services/api";
 
 export async function shareNote(
   noteId: string,
@@ -6,7 +8,7 @@ export async function shareNote(
   recipientPublicKey: JsonWebKey,
   privateKey: CryptoKey,
   token: string,
-  recipientUserId: string
+  recipientUserId: string,
 ) {
   // 1. Decrypt DEK (Bob already has access)
   const rawDEK = await decryptAESKey(
@@ -15,25 +17,19 @@ export async function shareNote(
       iv: noteKey.dekIv,
       ephemeralPublicKey: noteKey.ephemeralPublicKey,
     },
-    privateKey
+    privateKey,
   );
 
   // 2. Encrypt DEK for Alice
   const wrappedForAlice = await encryptAESKey(rawDEK, recipientPublicKey);
 
   // 3. Send to backend
-  await fetch("http://localhost:3000/api/v1/share/note", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      // Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      noteId,
-      userId: recipientUserId,
-      encryptedDEK: wrappedForAlice.encryptedAESKey,
-      dekIv: wrappedForAlice.iv,
-      ephemeralPublicKey: wrappedForAlice.ephemeralPublicKey,
-    }),
+
+  await api.post(API_ENDPOINTS.SHARE.NOTE, {
+    noteId,
+    userId: recipientUserId,
+    encryptedDEK: wrappedForAlice.encryptedAESKey,
+    dekIv: wrappedForAlice.iv,
+    ephemeralPublicKey: wrappedForAlice.ephemeralPublicKey,
   });
 }

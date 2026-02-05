@@ -15,10 +15,10 @@ const router = Router();
 
 router.get("/google/start", verifyToken, (req: IAuthenticatedRequest, res) => {
   const url = oauth2Client.generateAuthUrl({
-    access_type: "offline", // IMPORTANT (refresh token)
-    prompt: "consent", // IMPORTANT (force refresh token)
+    access_type: "offline",
+    prompt: "consent",
     scope: ["https://www.googleapis.com/auth/drive.file"],
-    state: req.user!.userId, // CSRF protection
+    state: req.user!.userId,
   });
 
   res.redirect(url);
@@ -56,30 +56,42 @@ router.get("/google/callback", async (req, res) => {
       scope: "drive.file",
       connectedAt: new Date(),
     },
-    { upsert: true }
+    { upsert: true },
   );
 
-  // 4. Redirect back to frontend
-  const redirectUrl = FRONTEND_URL 
-    ? `${FRONTEND_URL}/settings?drive=connected` 
+  // Redirect back to frontend
+  const redirectUrl = FRONTEND_URL
+    ? `${FRONTEND_URL}/settings?drive=connected`
     : "http://localhost:5173/settings?drive=connected";
-    
+
   res.redirect(redirectUrl);
 });
 
-router.get("/google/status", verifyToken, async (req: IAuthenticatedRequest, res) => {
-  try {
-    const userId = req.user?.userId;
-    const connection = await GoogleDriveConnection.findOne({ userId, isActive: true });
+router.get(
+  "/google/status",
+  verifyToken,
+  async (req: IAuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.userId;
+      const connection = await GoogleDriveConnection.findOne({
+        userId,
+        isActive: true,
+      });
 
-    if (connection) {
-      return res.json({ isConnected: true, connectedAt: connection.connectedAt });
-    } else {
-      return res.json({ isConnected: false });
+      if (connection) {
+        return res.json({
+          isConnected: true,
+          connectedAt: connection.connectedAt,
+        });
+      } else {
+        return res.json({ isConnected: false });
+      }
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ isConnected: false, error: "Failed to check status" });
     }
-  } catch (error) {
-    return res.status(500).json({ isConnected: false, error: "Failed to check status" });
-  }
-});
+  },
+);
 
 export default router;

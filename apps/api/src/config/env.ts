@@ -14,6 +14,7 @@ export const {
   GOOGLE_REDIRECT_URI,
   JWT_SECRET,
   FRONTEND_URL,
+  TOKEN_REFRESH_PATH,
 } = process.env;
 
 console.dir(process.env);
