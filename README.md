@@ -35,6 +35,17 @@ If the database, backend server, or cloud storage is compromised, user content r
 
 This project focuses on **doing cryptography-backed system design correctly**, rather than maximizing features or convenience.
 
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/homepage.png" width="180" />
+  <img src="assets/screenshots/example.png" width="180" />
+  <img src="assets/screenshots/vault.png" width="180" />
+  <img src="assets/screenshots/settings.png" width="180" />
+  <img src="assets/screenshots/decrypted.png" width="180" />
+  <img src="assets/screenshots/shareNote.png" width="180" />
+</p>
+
 
 ## Why ZeroVault Exists
 
