@@ -7,7 +7,6 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(corsMiddleware);
-app.options("*", corsMiddleware);
 app.use(cookieParser());
 app.use(express.json());
 app.use(loggerMiddleware);

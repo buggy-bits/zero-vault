@@ -17,4 +17,4 @@ export const {
   TOKEN_REFRESH_PATH,
 } = process.env;
 
-console.dir(process.env);
+//console.dir(process.env);

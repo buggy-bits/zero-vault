@@ -5,18 +5,18 @@ import jwt from "jsonwebtoken";
 import { TokenPayload } from "../utils/token";
 import type { File } from "multer";
 
-export interface IAuthenticatedRequest extends Request {
+export type IAuthenticatedRequest = Request & {
   user?: {
     userId: string;
     email: string;
   };
   file?: File;
-}
+};
 
 export const verifyToken = async (
   req: IAuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     let token: string | undefined;
