@@ -28,6 +28,7 @@ type EncryptedNote = {
   dekIv: string;
   ephemeralPublicKey: JsonWebKey;
   createdAt: string;
+  shareLink?: string;
 };
 
 export default function ReceiverInbox() {
@@ -181,6 +182,20 @@ export default function ReceiverInbox() {
                 </Typography>
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+                  {note.shareLink && (
+                    <Tooltip title="Copy Share Link">
+                      <IconButton 
+                        onClick={() => {
+                          navigator.clipboard.writeText(note.shareLink!);
+                          toast.success("Share link copied to clipboard!");
+                        }} 
+                        size="small"
+                        sx={{ color: "success.main" }}
+                      >
+                        <ContentCopy fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                   <Tooltip title="Decrypt & Read">
                     <IconButton 
                       onClick={() => decryptAndShow(note)} 

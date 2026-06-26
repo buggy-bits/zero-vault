@@ -38,14 +38,15 @@ export default function SettingsPage() {
     }
   }
 
-  function handleConnectDrive() {
+  async function handleConnectDrive() {
     setConnecting(true);
-    // Redirect to backend OAuth start
-    // Using window.location.origin is fine, but backend handles the redirect to Google
-    // The backend URL is where we need to go.
-    // Assuming backend is proxying or we need full URL.
-    // If using dev server proxy, relative path works.
-    window.location.href = `${window.location.origin.replace(':5173', ':3000')}${API_ENDPOINTS.OAUTH.GOOGLE_START}`;
+    try {
+      const res = await api.get(API_ENDPOINTS.OAUTH.GOOGLE_START);
+      window.location.href = res.data.url;
+    } catch {
+      toast.error("Failed to initiate Google Drive connection");
+      setConnecting(false);
+    }
   }
 
   return (

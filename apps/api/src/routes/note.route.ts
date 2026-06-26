@@ -6,6 +6,7 @@ import {
   verifyToken,
 } from "../middlewares/token.middleware";
 import { FileShare } from "../models/fileShare.model";
+import { FRONTEND_URL } from "../config/env";
 
 const router = Router();
 
@@ -75,9 +76,14 @@ router.get("/", verifyToken, async (req: IAuthenticatedRequest, res) => {
   // 4. Build lookup map for keys
   const keyMap = new Map(noteKeys.map((nk) => [nk.noteId.toString(), nk]));
 
+  // 4b. Fetch all shares associated with these noteIds
+  const shares = await FileShare.find({ noteId: { $in: noteIds } });
+  const shareMap = new Map(shares.map((s) => [s.noteId!.toString(), s]));
+
   // 5. Merge note + key
   const response = notes.map((note) => {
     const key = keyMap.get(note._id.toString());
+    const share = shareMap.get(note._id.toString());
 
     return {
       noteId: note._id,
@@ -90,6 +96,7 @@ router.get("/", verifyToken, async (req: IAuthenticatedRequest, res) => {
 
       ownerId: note.ownerId,
       createdAt: note.createdAt,
+      shareLink: share ? `${FRONTEND_URL}/share/note/${share.shareId}` : null,
     };
   });
 

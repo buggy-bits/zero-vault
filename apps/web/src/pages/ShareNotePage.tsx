@@ -29,10 +29,12 @@ export default function ShareNotePage() {
 
   const [receiver, setReceiver] = useState<ReceiverInfo | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sharedLink, setSharedLink] = useState<string | null>(null);
 
   // STEP 1: Check receiver existence & fetch public key
   async function handleCheckUser() {
     setReceiver(null);
+    setSharedLink(null);
     setLoading(true);
 
     try {
@@ -89,7 +91,7 @@ export default function ShareNotePage() {
       );
 
       // 6. Store receiver access
-      await api.post(API_ENDPOINTS.SHARE.NOTE, {
+      const shareRes = await api.post(API_ENDPOINTS.SHARE.NOTE, {
         noteId,
         receiverEmail: email,
         userId: receiver.userId,
@@ -98,6 +100,7 @@ export default function ShareNotePage() {
         ephemeralPublicKey: wrappedForReceiver.ephemeralPublicKey,
       });
 
+      setSharedLink(shareRes.data.shareLink);
       setNote("");
       setEmail("");
       setReceiver(null);
@@ -140,6 +143,61 @@ export default function ShareNotePage() {
           borderRadius: 2,
         }}
       >
+        {sharedLink && (
+          <Box 
+            sx={{ 
+              mb: 4, 
+              p: 3, 
+              bgcolor: "primary.main", 
+              color: "white", 
+              borderRadius: 2,
+              boxShadow: "0 4px 12px 0 rgba(79, 70, 229, 0.2)"
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
+              🎉 Share Link Ready!
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
+              Copy the secure link below to share the encrypted note.
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <TextField
+                fullWidth
+                size="small"
+                value={sharedLink}
+                InputProps={{ 
+                  readOnly: true,
+                  sx: { color: "text.primary" }
+                }}
+                sx={{ 
+                  bgcolor: "background.paper", 
+                  borderRadius: 1,
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "transparent" },
+                    "&:hover fieldset": { borderColor: "transparent" },
+                    "&.Mui-focused fieldset": { borderColor: "transparent" },
+                  }
+                }}
+              />
+              <Button
+                variant="contained"
+                sx={{ 
+                  bgcolor: "white", 
+                  color: "primary.main", 
+                  fontWeight: 600,
+                  "&:hover": { bgcolor: "grey.100" }
+                }}
+                onClick={() => {
+                  navigator.clipboard.writeText(sharedLink);
+                  toast.success("Copied to clipboard!");
+                }}
+              >
+                Copy
+              </Button>
+            </Box>
+          </Box>
+        )}
+
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
           Write Message
         </Typography>

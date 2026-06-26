@@ -21,7 +21,7 @@ router.get("/google/start", verifyToken, (req: IAuthenticatedRequest, res) => {
     state: req.user!.userId,
   });
 
-  res.redirect(url);
+  res.json({ url });
 });
 
 router.get("/google/callback", async (req, res) => {
