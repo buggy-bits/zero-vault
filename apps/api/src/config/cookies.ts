@@ -14,6 +14,6 @@ export const refreshCookie: CookieOptions = {
   httpOnly: true,
   secure: isProduction,
   sameSite: isProduction ? "none" : "lax",
-  path: TOKEN_REFRESH_PATH || "/api/v1/auth/refresh",
+  path: TOKEN_REFRESH_PATH || "/api/v1/auth/token/refresh",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };

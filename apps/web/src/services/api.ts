@@ -40,7 +40,6 @@ class ApiService {
 
         // 2️⃣ DO NOT refresh for these endpoints
         const skipRefresh =
-          url.includes("/api/v1/auth/me") ||
           url.includes("/api/v1/auth/token/refresh");
 
         if (status === 401 && !skipRefresh && !originalConfig._retry) {
