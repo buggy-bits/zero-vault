@@ -50,8 +50,16 @@ class ApiService {
 
             //  Retry the original request
             return this.client.request(originalConfig);
-          } catch {
-            window.location.href = ROUTES.LOGIN;
+          } catch (refreshError) {
+            const path = window.location.pathname;
+            if (
+              path !== ROUTES.LOGIN &&
+              path !== ROUTES.REGISTER &&
+              path !== "/"
+            ) {
+              window.location.href = ROUTES.LOGIN;
+            }
+            return Promise.reject(refreshError);
           }
         }
         return Promise.reject(error);

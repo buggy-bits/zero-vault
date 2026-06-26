@@ -1,7 +1,8 @@
 import cors, { CorsOptions } from "cors";
+import { ALLOWED_ORIGINS } from "./env";
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+const allowedOrigins = ALLOWED_ORIGINS
+  ? ALLOWED_ORIGINS.split(",").map((o) => o.trim())
   : [];
 
 const corsOptions: CorsOptions = {

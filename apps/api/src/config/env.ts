@@ -15,6 +15,7 @@ export const {
   JWT_SECRET,
   FRONTEND_URL,
   TOKEN_REFRESH_PATH,
+  ALLOWED_ORIGINS,
 } = process.env;
 
 //console.dir(process.env);
