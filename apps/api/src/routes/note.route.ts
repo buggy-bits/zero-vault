@@ -133,7 +133,7 @@ router.get("/files", verifyToken, async (req: IAuthenticatedRequest, res) => {
     // 3️⃣ Merge note + key data
     const response = notes.map((note) => {
       const key = noteKeys.find(
-        (nk) => nk.noteId.toString() === note._id.toString()
+        (nk) => nk.noteId.toString() === note._id.toString(),
       );
 
       return {
@@ -198,7 +198,7 @@ router.get(
       mimeType: note!.mimeType,
       originalFileName: note!.originalFileName,
     });
-  }
+  },
 );
 
 router.get(
@@ -227,7 +227,7 @@ router.get(
       dekIv: key!.dekIv,
       ephemeralPublicKey: key!.ephemeralPublicKey,
     });
-  }
+  },
 );
 /**
  * Sender metadata (by fileId / noteId)
@@ -264,7 +264,7 @@ router.get(
       dekIv: key.dekIv,
       ephemeralPublicKey: key.ephemeralPublicKey,
     });
-  }
+  },
 );
 
 /**
@@ -294,13 +294,13 @@ router.delete(
     // 2. revoke all keys (owner + receivers)
     await NoteKey.updateMany(
       { noteId },
-      { isRevoked: true, revokedAt: new Date() }
+      { isRevoked: true, revokedAt: new Date() },
     );
 
     // 3. invalidate share links
     await FileShare.deleteMany({ noteId });
 
     res.json({ success: true });
-  }
+  },
 );
 export default router;

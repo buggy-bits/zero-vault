@@ -579,7 +579,7 @@ export default function HomePage() {
             >
               <Button
                 component={RouterLink}
-                to="/auth/register"
+                to="/auth/login"
                 variant="contained"
                 size="large"
                 startIcon={<ArrowForward />}
